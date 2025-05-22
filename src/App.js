@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 
-const BACKEND_URL = "https://michellekinzaibackendfr.onrender.com"; // Change if your backend URL differs
+const BACKEND_URL = "https://michellekinzaibackendbot.onrender.com"; // Change if your backend URL differs
 
 export default function App() {
   const [userId] = useState(() => "user_" + Math.floor(Math.random() * 10000));
