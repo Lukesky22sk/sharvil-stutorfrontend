@@ -1,13 +1,24 @@
-import React, { useState } from "react";
-import ResponseBox from "./ResponseBox"; // Importing our smart rendering component
+import React, { useState, useEffect } from "react";
 
-const BACKEND_URL = "https://michellekinzaibackendbotfr.onrender.com";
+const BACKEND_URL = "https://michellekinzaibackendbotfr.onrender.com"; // Change to your backend
 
 export default function App() {
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Trigger KaTeX math rendering on new response
+  useEffect(() => {
+    if (window.renderMathInElement) {
+      window.renderMathInElement(document.body, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "\\(", right: "\\)", display: false },
+        ],
+      });
+    }
+  }, [response]);
 
   const submitPrompt = async () => {
     if (!prompt.trim()) return;
@@ -16,6 +27,7 @@ export default function App() {
     setError("");
     setResponse("");
 
+    // Strong instruction to list methods only (no direct answers or follow-ups)
     const wrappedPrompt = `Please provide a list of specific methods, techniques, or approaches I can use to solve the following problem. Do not give the final answer or ask follow-up questions. Instead, guide me step-by-step through possible ways to approach the problem:\n\n${prompt}`;
 
     try {
@@ -42,30 +54,29 @@ export default function App() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !loading && !e.shiftKey) {
-      e.preventDefault(); // Prevent newline insert
+    if (e.key === "Enter" && !loading) {
       submitPrompt();
     }
   };
 
   return (
-    <div className="app-container">
-      <h1 className="title">Michellekinzai Tutor</h1>
+    <div className="container">
+      <h1>Michellekinzai Tutor</h1>
 
       <textarea
+        className="input-box"
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Type your question or problem here..."
         rows={5}
-        className="input-box"
         disabled={loading}
       />
 
       <button
+        className="button"
         onClick={submitPrompt}
         disabled={loading || !prompt.trim()}
-        className="submit-button"
       >
         {loading ? "Thinking..." : "Submit"}
       </button>
@@ -76,7 +87,12 @@ export default function App() {
         </div>
       )}
 
-      {response && <ResponseBox message={response} />}
+      {response && (
+        <div
+          className="response-box"
+          dangerouslySetInnerHTML={{ __html: response }}
+        />
+      )}
     </div>
   );
 }
