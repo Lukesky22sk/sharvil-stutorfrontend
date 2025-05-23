@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
 
-const BACKEND_URL = "https://sharvilstutorbackend.onrender.com"; // Change to your backend
+const BACKEND_URL = "https://sharvilstutorbackend.onrender.com";
 
 export default function App() {
   const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState("");
+  const [response, setResponse] = useState(""); // Full response
+  const [displayedResponse, setDisplayedResponse] = useState(""); // Animated typing
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mode, setMode] = useState("learning"); // "learning" or "answer"
 
-  // Trigger KaTeX math rendering on new response
+  // KaTeX rendering when response updates
   useEffect(() => {
     if (window.renderMathInElement) {
       window.renderMathInElement(document.body, {
@@ -18,6 +20,27 @@ export default function App() {
         ],
       });
     }
+  }, [displayedResponse]);
+
+  // Typing animation
+  useEffect(() => {
+    if (!response) return;
+
+    let index = 0;
+    setDisplayedResponse("");
+    const interval = setInterval(() => {
+      setDisplayedResponse((prev) => {
+        if (index >= response.length) {
+          clearInterval(interval);
+          return prev;
+        }
+        const nextChar = response[index];
+        index++;
+        return prev + nextChar;
+      });
+    }, 15);
+
+    return () => clearInterval(interval);
   }, [response]);
 
   const submitPrompt = async () => {
@@ -26,15 +49,18 @@ export default function App() {
     setLoading(true);
     setError("");
     setResponse("");
+    setDisplayedResponse("");
 
-    // Strong instruction to list methods only (no direct answers or follow-ups)
-    const wrappedPrompt = `Please provide a list of specific methods, techniques, or approaches I can use to solve the following problem. Do not give the final answer or ask follow-up questions. Instead, guide me step-by-step through possible ways to approach the problem:\n\n${prompt}`;
+    const modeInstruction =
+      mode === "learning"
+        ? `Please provide a list of specific methods, techniques, or approaches I can use to solve the following problem. Do not give the final answer or ask follow-up questions. Instead, guide me step-by-step through possible ways to approach the problem:\n\n${prompt}`
+        : `Please give me the complete and correct final answer to the following question directly:\n\n${prompt}`;
 
     try {
       const res = await fetch(`${BACKEND_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: wrappedPrompt }),
+        body: JSON.stringify({ prompt: modeInstruction }),
       });
 
       if (!res.ok) {
@@ -61,7 +87,25 @@ export default function App() {
 
   return (
     <div className="container">
-      <h1>Michellekinzai Tutor</h1>
+      <h1>Sharvil's Tutor</h1>
+
+      <div style={{ marginBottom: "1rem" }}>
+        <label style={{ fontWeight: "600", marginRight: "0.5rem" }}>
+          Mode:
+        </label>
+        <select
+          value={mode}
+          onChange={(e) => setMode(e.target.value)}
+          style={{
+            padding: "0.5rem",
+            borderRadius: "6px",
+            fontSize: "1rem",
+          }}
+        >
+          <option value="learning">Learning Mode</option>
+          <option value="answer">Answer Mode</option>
+        </select>
+      </div>
 
       <textarea
         className="input-box"
@@ -87,10 +131,10 @@ export default function App() {
         </div>
       )}
 
-      {response && (
+      {displayedResponse && (
         <div
           className="response-box"
-          dangerouslySetInnerHTML={{ __html: response }}
+          dangerouslySetInnerHTML={{ __html: displayedResponse }}
         />
       )}
     </div>
