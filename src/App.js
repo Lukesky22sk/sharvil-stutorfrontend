@@ -1,39 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const BACKEND_URL = "https://michellekinzaibackendbotfr.onrender.com"; // Your backend URL
 
 export default function App() {
-  const [input, setInput] = useState("");
-  const [response, setResponse] = useState(
-    "Ask me anything, and I'll guide you with questions."
-  );
+  const [userId] = useState(() => "user_" + Math.floor(Math.random() * 10000));
+  const [question, setQuestion] = useState("");
+  const [guidance, setGuidance] = useState("");
+  const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const submitInput = async () => {
-    if (!input.trim()) return;
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/api/questions?user=${userId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setQuestion(data.question);
+        setGuidance(data.guidance);
+      });
+  }, [userId]);
+
+  const submitAnswer = async () => {
+    if (!answer.trim()) return;
 
     setLoading(true);
 
     try {
-      const res = await fetch(`${BACKEND_URL}/chat`, {
+      const res = await fetch(`${BACKEND_URL}/api/answers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: input }),
+        body: JSON.stringify({ user: userId, answer }),
       });
-
       const data = await res.json();
 
-      if (data.response) {
-        setResponse(data.response);
-      } else if (data.error) {
-        setResponse("Error from backend: " + data.error);
-      } else {
-        setResponse("Unexpected response from backend.");
-      }
-
-      setInput("");
+      setQuestion(data.question || "");
+      setGuidance(data.guidance || "");
+      setAnswer("");
     } catch (e) {
-      setResponse("Error communicating with backend.");
+      setQuestion("Error communicating with backend.");
+      setGuidance("");
     } finally {
       setLoading(false);
     }
@@ -41,53 +44,55 @@ export default function App() {
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !loading) {
-      submitInput();
+      submitAnswer();
     }
   };
 
   return (
-    <div style={{ maxWidth: 600, margin: "2rem auto", fontFamily: "Arial, sans-serif" }}>
+    <div
+      style={{
+        maxWidth: 600,
+        margin: "2rem auto",
+        fontFamily: "Arial, sans-serif",
+        color: "black",            // <-- Text color set to black here
+      }}
+    >
       <h1>Michellekinzai Tutor</h1>
-
-      <div
-        style={{
-          marginBottom: "1rem",
-          minHeight: "4rem",
-          padding: "1rem",
-          backgroundColor: "#f0f0f0",
-          borderRadius: "5px",
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        {response}
-      </div>
+      <div style={{ marginBottom: "1rem", fontWeight: "bold" }}>{question}</div>
+      <div style={{ marginBottom: "1rem", color: "#666" }}>{guidance}</div>
 
       <input
         type="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
+        value={answer}
+        onChange={(e) => setAnswer(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={loading}
-        placeholder="Type your question or statement here..."
         style={{
           width: "100%",
           padding: "0.5rem",
           fontSize: "1rem",
           boxSizing: "border-box",
+          color: "black",          // <-- Input text color black
+          border: "1px solid #ccc",
+          borderRadius: "4px",
         }}
+        placeholder="Type your answer or question here..."
       />
-
       <button
-        onClick={submitInput}
-        disabled={loading || !input.trim()}
+        onClick={submitAnswer}
+        disabled={loading || !answer.trim()}
         style={{
           marginTop: "0.5rem",
           padding: "0.5rem 1rem",
           fontSize: "1rem",
-          cursor: loading || !input.trim() ? "not-allowed" : "pointer",
+          cursor: loading || !answer.trim() ? "not-allowed" : "pointer",
+          color: "black",          // <-- Button text color black
+          backgroundColor: "#eee",
+          border: "1px solid #ccc",
+          borderRadius: "4px",
         }}
       >
-        {loading ? "Thinking..." : "Ask"}
+        {loading ? "Thinking..." : "Submit"}
       </button>
     </div>
   );
