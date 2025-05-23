@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 
-const BACKEND_URL = "https://sharvilstutorbackend.onrender.com"; // Change to your backend
+const BACKEND_URL = "https://sharvilstutorbackend.onrender.com";
 
 export default function App() {
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mode, setMode] = useState("learning"); // "learning" or "answer"
 
-  // Trigger KaTeX math rendering on new response
+  // KaTeX render on response change
   useEffect(() => {
     if (window.renderMathInElement) {
       window.renderMathInElement(document.body, {
@@ -27,8 +28,13 @@ export default function App() {
     setError("");
     setResponse("");
 
-    // Strong instruction to list methods only (no direct answers or follow-ups)
-    const wrappedPrompt = `Please provide a list of specific methods, techniques, or approaches I can use to solve the following problem. Do not give the final answer or ask follow-up questions. Instead, guide me step-by-step through possible ways to approach the problem:\n\n${prompt}`;
+    let wrappedPrompt = prompt;
+
+    if (mode === "learning") {
+      wrappedPrompt =
+        `Please provide a list of specific methods, techniques, or approaches I can use to solve the following problem. ` +
+        `Do not give the final answer or ask follow-up questions. Instead, guide me step-by-step through possible ways to approach the problem:\n\n${prompt}`;
+    }
 
     try {
       const res = await fetch(`${BACKEND_URL}/chat`, {
@@ -61,7 +67,18 @@ export default function App() {
 
   return (
     <div className="container">
-      <h1>Sharvil's Tutor</h1>
+      <h1>Sharvils Tutor</h1>
+
+      <label htmlFor="mode-select">Select Mode:</label>
+      <select
+        id="mode-select"
+        value={mode}
+        onChange={(e) => setMode(e.target.value)}
+        style={{ marginBottom: "1rem", padding: "0.5rem" }}
+      >
+        <option value="learning">Learning Mode (step-by-step guidance)</option>
+        <option value="answer">Answer Mode (direct solution)</option>
+      </select>
 
       <textarea
         className="input-box"
