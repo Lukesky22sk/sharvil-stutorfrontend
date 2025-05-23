@@ -1,42 +1,39 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
-const BACKEND_URL = "https://michellekinzaibackendbotfr.onrender.com"; // Your backend URL
+const BACKEND_URL = "https://michellekinzaibackendbotfr.onrender.com";
 
 export default function App() {
-  const [userId] = useState(() => "user_" + Math.floor(Math.random() * 10000));
-  const [question, setQuestion] = useState("");
-  const [guidance, setGuidance] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [userId] = React.useState(() => "user_" + Math.floor(Math.random() * 10000));
+  const [prompt, setPrompt] = useState("");
+  const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetch(`${BACKEND_URL}/api/questions?user=${userId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setQuestion(data.question);
-        setGuidance(data.guidance);
-      });
-  }, [userId]);
-
-  const submitAnswer = async () => {
-    if (!answer.trim()) return;
+  const submitPrompt = async () => {
+    if (!prompt.trim()) return;
 
     setLoading(true);
+    setError("");
+    setResponse("");
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/answers`, {
+      const res = await fetch(`${BACKEND_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user: userId, answer }),
+        body: JSON.stringify({ prompt }),
       });
-      const data = await res.json();
 
-      setQuestion(data.question || "");
-      setGuidance(data.guidance || "");
-      setAnswer("");
+      if (!res.ok) {
+        const errorData = await res.json();
+        setError(errorData.error || "Error from backend");
+        setLoading(false);
+        return;
+      }
+
+      const data = await res.json();
+      setResponse(data.response || "");
     } catch (e) {
-      setQuestion("Error communicating with backend.");
-      setGuidance("");
+      setError("Network error: " + e.message);
     } finally {
       setLoading(false);
     }
@@ -44,56 +41,69 @@ export default function App() {
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !loading) {
-      submitAnswer();
+      submitPrompt();
     }
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 600,
-        margin: "2rem auto",
-        fontFamily: "Arial, sans-serif",
-        color: "black",            // <-- Text color set to black here
-      }}
-    >
+    <div style={{ maxWidth: 600, margin: "2rem auto", fontFamily: "Arial, sans-serif", color: "black" }}>
       <h1>Michellekinzai Tutor</h1>
-      <div style={{ marginBottom: "1rem", fontWeight: "bold" }}>{question}</div>
-      <div style={{ marginBottom: "1rem", color: "#666" }}>{guidance}</div>
 
       <input
         type="text"
-        value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={loading}
+        placeholder="Type your question here..."
         style={{
           width: "100%",
           padding: "0.5rem",
           fontSize: "1rem",
           boxSizing: "border-box",
-          color: "black",          // <-- Input text color black
+          color: "black",
           border: "1px solid #ccc",
-          borderRadius: "4px",
+          borderRadius: "4px"
         }}
-        placeholder="Type your answer or question here..."
       />
       <button
-        onClick={submitAnswer}
-        disabled={loading || !answer.trim()}
+        onClick={submitPrompt}
+        disabled={loading || !prompt.trim()}
         style={{
           marginTop: "0.5rem",
           padding: "0.5rem 1rem",
           fontSize: "1rem",
-          cursor: loading || !answer.trim() ? "not-allowed" : "pointer",
-          color: "black",          // <-- Button text color black
-          backgroundColor: "#eee",
-          border: "1px solid #ccc",
-          borderRadius: "4px",
+          cursor: loading || !prompt.trim() ? "not-allowed" : "pointer",
+          backgroundColor: "#007bff",
+          color: "white",
+          border: "none",
+          borderRadius: "4px"
         }}
       >
         {loading ? "Thinking..." : "Submit"}
       </button>
+
+      {error && (
+        <div style={{ marginTop: "1rem", color: "red", fontWeight: "bold" }}>
+          {error}
+        </div>
+      )}
+
+      {response && (
+        <div
+          style={{
+            marginTop: "1.5rem",
+            whiteSpace: "pre-wrap",
+            backgroundColor: "#f9f9f9",
+            padding: "1rem",
+            borderRadius: "4px",
+            border: "1px solid #ddd",
+            color: "black",
+          }}
+        >
+          {response}
+        </div>
+      )}
     </div>
   );
 }
