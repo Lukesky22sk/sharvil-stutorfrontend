@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const BACKEND_URL = "https://michellekinzaibackendbotfr.onrender.com"; // Change to your backend
+const BACKEND_URL = "https://sharvilstutorbackend.onrender.com"; // Change to your backend
 
 export default function App() {
   const [prompt, setPrompt] = useState("");
