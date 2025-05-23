@@ -15,8 +15,8 @@ export default function App() {
     setError("");
     setResponse("");
 
-    // Wrap user prompt with guidance instructions
-    const wrappedPrompt = `Guide me step-by-step to solve the following problem without giving the final answer or asking follow-up questions. Only provide methods, hints, and approaches:\n\n${prompt}`;
+    // Strong instruction to list specific methods without final answers or questions
+    const wrappedPrompt = `Please provide a list of specific methods, techniques, or approaches I can use to solve the following problem. Do not give the final answer or ask follow-up questions. Instead, guide me step-by-step through possible ways to approach the problem:\n\n${prompt}`;
 
     try {
       const res = await fetch(`${BACKEND_URL}/chat`, {
