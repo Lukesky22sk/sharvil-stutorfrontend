@@ -1,6 +1,7 @@
 import React, { useState } from "react";
+import ResponseBox from "./ResponseBox"; // Importing our smart rendering component
 
-const BACKEND_URL = "https://michellekinzaibackendbotfr.onrender.com"; // Your backend URL
+const BACKEND_URL = "https://michellekinzaibackendbotfr.onrender.com";
 
 export default function App() {
   const [prompt, setPrompt] = useState("");
@@ -15,7 +16,6 @@ export default function App() {
     setError("");
     setResponse("");
 
-    // Strong instruction to list specific methods without final answers or questions
     const wrappedPrompt = `Please provide a list of specific methods, techniques, or approaches I can use to solve the following problem. Do not give the final answer or ask follow-up questions. Instead, guide me step-by-step through possible ways to approach the problem:\n\n${prompt}`;
 
     try {
@@ -42,14 +42,15 @@ export default function App() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !loading) {
+    if (e.key === "Enter" && !loading && !e.shiftKey) {
+      e.preventDefault(); // Prevent newline insert
       submitPrompt();
     }
   };
 
   return (
-    <div style={{ maxWidth: 600, margin: "2rem auto", fontFamily: "Arial, sans-serif", color: "#000" }}>
-      <h1>Michellekinzai Tutor</h1>
+    <div className="app-container">
+      <h1 className="title">Michellekinzai Tutor</h1>
 
       <textarea
         value={prompt}
@@ -57,27 +58,14 @@ export default function App() {
         onKeyDown={handleKeyDown}
         placeholder="Type your question or problem here..."
         rows={5}
-        style={{
-          width: "100%",
-          padding: "0.5rem",
-          fontSize: "1rem",
-          boxSizing: "border-box",
-          marginBottom: "1rem",
-          color: "#000",
-          borderColor: "#333",
-          resize: "vertical",
-        }}
+        className="input-box"
         disabled={loading}
       />
 
       <button
         onClick={submitPrompt}
         disabled={loading || !prompt.trim()}
-        style={{
-          padding: "0.5rem 1rem",
-          fontSize: "1rem",
-          cursor: loading || !prompt.trim() ? "not-allowed" : "pointer",
-        }}
+        className="submit-button"
       >
         {loading ? "Thinking..." : "Submit"}
       </button>
@@ -88,20 +76,7 @@ export default function App() {
         </div>
       )}
 
-      {response && (
-        <div
-          style={{
-            marginTop: "1rem",
-            whiteSpace: "pre-wrap",
-            backgroundColor: "#f9f9f9",
-            padding: "1rem",
-            borderRadius: "4px",
-            color: "#000",
-          }}
-        >
-          {response}
-        </div>
-      )}
+      {response && <ResponseBox message={response} />}
     </div>
   );
 }
