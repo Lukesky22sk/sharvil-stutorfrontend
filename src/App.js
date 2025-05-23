@@ -61,7 +61,7 @@ export default function App() {
 
   return (
     <div className="container">
-      <h1>Sharvils Tutor</h1>
+      <h1>Sharvil's Tutor</h1>
 
       <textarea
         className="input-box"
