@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from "react";
 
-const BACKEND_URL = "https://sharvilstutorbackend.onrender.com"; // Change if needed
+const BACKEND_URL = "https://sharvilstutorbackend.onrender.com"; // Change to your backend
 
 export default function App() {
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
-  const [animatedResponse, setAnimatedResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [mode, setMode] = useState("learning"); // 'learning' or 'answer'
 
+  // Trigger KaTeX math rendering on new response
   useEffect(() => {
     if (window.renderMathInElement) {
       window.renderMathInElement(document.body, {
@@ -19,20 +18,6 @@ export default function App() {
         ],
       });
     }
-  }, [animatedResponse]);
-
-  useEffect(() => {
-    // Animate text reveal
-    let i = 0;
-    const interval = setInterval(() => {
-      if (i < response.length) {
-        setAnimatedResponse(window.marked(response.slice(0, i + 1)));
-        i++;
-      } else {
-        clearInterval(interval);
-      }
-    }, 10);
-    return () => clearInterval(interval);
   }, [response]);
 
   const submitPrompt = async () => {
@@ -41,12 +26,9 @@ export default function App() {
     setLoading(true);
     setError("");
     setResponse("");
-    setAnimatedResponse("");
 
-    const wrappedPrompt =
-      mode === "learning"
-        ? `Please provide a list of specific methods, techniques, or approaches I can use to solve the following problem. Do not give the final answer or ask follow-up questions. Instead, guide me step-by-step through possible ways to approach the problem:\n\n${prompt}`
-        : prompt;
+    // Strong instruction to list methods only (no direct answers or follow-ups)
+    const wrappedPrompt = `Please provide a list of specific methods, techniques, or approaches I can use to solve the following problem. Do not give the final answer or ask follow-up questions. Instead, guide me step-by-step through possible ways to approach the problem:\n\n${prompt}`;
 
     try {
       const res = await fetch(`${BACKEND_URL}/chat`, {
@@ -72,34 +54,14 @@ export default function App() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !loading && !e.shiftKey) {
-      e.preventDefault();
+    if (e.key === "Enter" && !loading) {
       submitPrompt();
     }
   };
 
   return (
     <div className="container">
-      <h1>Sharvil's Tutor</h1>
-
-      <div style={{ marginBottom: "1rem" }}>
-        <label style={{ marginRight: "1rem", fontWeight: 600 }}>
-          Mode:
-        </label>
-        <select
-          value={mode}
-          onChange={(e) => setMode(e.target.value)}
-          style={{
-            padding: "0.5rem",
-            borderRadius: "6px",
-            border: "1px solid #ccc",
-            fontSize: "1rem",
-          }}
-        >
-          <option value="learning">Learning Mode</option>
-          <option value="answer">Answer Mode</option>
-        </select>
-      </div>
+      <h1>Michellekinzai Tutor</h1>
 
       <textarea
         className="input-box"
@@ -125,10 +87,10 @@ export default function App() {
         </div>
       )}
 
-      {animatedResponse && (
+      {response && (
         <div
           className="response-box"
-          dangerouslySetInnerHTML={{ __html: animatedResponse }}
+          dangerouslySetInnerHTML={{ __html: response }}
         />
       )}
     </div>
