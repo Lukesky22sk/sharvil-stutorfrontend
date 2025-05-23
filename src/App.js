@@ -102,8 +102,8 @@ export default function App() {
             fontSize: "1rem",
           }}
         >
-          <option value="learning">Learning Mode</option>
-          <option value="answer">Answer Mode</option>
+          <option value="learning">Learning Mode (use for methods and explanation)</option>
+          <option value="answer">Answer Mode (use for answers and reasoning)</option>
         </select>
       </div>
 
