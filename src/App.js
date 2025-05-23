@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
 
-const BACKEND_URL = "https://sharvilstutorbackend.onrender.com";
+const BACKEND_URL = "https://sharvilstutorbackend.onrender.com"; // Change if needed
 
 export default function App() {
   const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState(""); // Full response
-  const [displayedResponse, setDisplayedResponse] = useState(""); // Animated typing
+  const [response, setResponse] = useState("");
+  const [animatedResponse, setAnimatedResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [mode, setMode] = useState("learning"); // "learning" or "answer"
+  const [mode, setMode] = useState("learning"); // 'learning' or 'answer'
 
-  // KaTeX rendering when response updates
   useEffect(() => {
     if (window.renderMathInElement) {
       window.renderMathInElement(document.body, {
@@ -20,26 +19,19 @@ export default function App() {
         ],
       });
     }
-  }, [displayedResponse]);
+  }, [animatedResponse]);
 
-  // Typing animation
   useEffect(() => {
-    if (!response) return;
-
-    let index = 0;
-    setDisplayedResponse("");
+    // Animate text reveal
+    let i = 0;
     const interval = setInterval(() => {
-      setDisplayedResponse((prev) => {
-        if (index >= response.length) {
-          clearInterval(interval);
-          return prev;
-        }
-        const nextChar = response[index];
-        index++;
-        return prev + nextChar;
-      });
-    }, 15);
-
+      if (i < response.length) {
+        setAnimatedResponse(window.marked(response.slice(0, i + 1)));
+        i++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 10);
     return () => clearInterval(interval);
   }, [response]);
 
@@ -49,18 +41,18 @@ export default function App() {
     setLoading(true);
     setError("");
     setResponse("");
-    setDisplayedResponse("");
+    setAnimatedResponse("");
 
-    const modeInstruction =
+    const wrappedPrompt =
       mode === "learning"
         ? `Please provide a list of specific methods, techniques, or approaches I can use to solve the following problem. Do not give the final answer or ask follow-up questions. Instead, guide me step-by-step through possible ways to approach the problem:\n\n${prompt}`
-        : `Please give me the complete and correct final answer to the following question directly:\n\n${prompt}`;
+        : prompt;
 
     try {
       const res = await fetch(`${BACKEND_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: modeInstruction }),
+        body: JSON.stringify({ prompt: wrappedPrompt }),
       });
 
       if (!res.ok) {
@@ -80,7 +72,8 @@ export default function App() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !loading) {
+    if (e.key === "Enter" && !loading && !e.shiftKey) {
+      e.preventDefault();
       submitPrompt();
     }
   };
@@ -90,7 +83,7 @@ export default function App() {
       <h1>Sharvil's Tutor</h1>
 
       <div style={{ marginBottom: "1rem" }}>
-        <label style={{ fontWeight: "600", marginRight: "0.5rem" }}>
+        <label style={{ marginRight: "1rem", fontWeight: 600 }}>
           Mode:
         </label>
         <select
@@ -99,6 +92,7 @@ export default function App() {
           style={{
             padding: "0.5rem",
             borderRadius: "6px",
+            border: "1px solid #ccc",
             fontSize: "1rem",
           }}
         >
@@ -131,10 +125,10 @@ export default function App() {
         </div>
       )}
 
-      {displayedResponse && (
+      {animatedResponse && (
         <div
           className="response-box"
-          dangerouslySetInnerHTML={{ __html: displayedResponse }}
+          dangerouslySetInnerHTML={{ __html: animatedResponse }}
         />
       )}
     </div>
